@@ -23,6 +23,7 @@
  * }
  */
 
+import React from 'react';
 import { User, Mail, Calendar, LogOut, Settings, Bell, Volume2, Target, Moon, Sun, Link } from 'lucide-react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
