@@ -11,14 +11,7 @@
         'vaul@1.1.2': 'vaul',
         'sonner@2.0.3': 'sonner',
         'recharts@2.15.2': 'recharts',
-      server: {
-        port: 3000,
-        open: true,
-      },
-      preview: {
-        host: '0.0.0.0',
-        allowedHosts: ['konstiknow.onrender.com'],
-      },
+        
         'lucide-react@0.487.0': 'lucide-react',
         'input-otp@1.4.2': 'input-otp',
         'embla-carousel-react@8.6.0': 'embla-carousel-react',
@@ -61,5 +54,9 @@
     server: {
       port: 3000,
       open: true,
+    },
+    preview: {
+      host: '0.0.0.0',
+      allowedHosts: ['konstiknow.onrender.com'],
     },
   });
