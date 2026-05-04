@@ -56,7 +56,8 @@ import { lessons } from "../data/lessons";
 // Use the static lessons as mock data until API is wired
 const mockLessons: Lesson[] = lessons as unknown as Lesson[];
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL || 'https://konstiknow-backend.onrender.com';
 
 export async function seedLessons(replace = false) {
   const res = await fetch(`${API_BASE}/api/admin/seed-lessons`, {
