@@ -18,13 +18,15 @@ export function QuizScreen({ lesson, onComplete, onExit }: QuizScreenProps) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [hearts, setHearts] = useState(5);
+  const [quizFailed, setQuizFailed] = useState(false);
 
   const currentQuestion = lesson.questions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === lesson.questions.length - 1;
   const progress = ((currentQuestionIndex + 1) / lesson.questions.length) * 100;
   const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
 
   const handleAnswerSelect = (index: number) => {
-    if (!showFeedback) {
+    if (!showFeedback && !quizFailed) {
       setSelectedAnswer(index);
     }
   };
@@ -35,22 +37,39 @@ export function QuizScreen({ lesson, onComplete, onExit }: QuizScreenProps) {
     setShowFeedback(true);
     
     const correct = selectedAnswer === currentQuestion.correctAnswer;
-    setAnswers([...answers, correct]);
+    setAnswers((previousAnswers) => [...previousAnswers, correct]);
     
     if (!correct && hearts > 0) {
-      setHearts(hearts - 1);
+      setHearts((previousHearts) => {
+        const remainingHearts = previousHearts - 1;
+
+        if (remainingHearts <= 0) {
+          setQuizFailed(true);
+          return 0;
+        }
+
+        return remainingHearts;
+      });
     }
   };
 
   const handleContinue = () => {
-    if (currentQuestionIndex < lesson.questions.length - 1) {
+    if (!showFeedback || quizFailed) {
+      return;
+    }
+
+    if (!isLastQuestion) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer(null);
       setShowFeedback(false);
     } else {
       // Quiz complete
-      const score = answers.filter(a => a).length + (isCorrect ? 1 : 0);
-      onComplete(score, [...answers, isCorrect]);
+      const finalAnswers =
+        answers.length === lesson.questions.length
+          ? answers
+          : [...answers, isCorrect];
+      const score = finalAnswers.filter((answer) => answer).length;
+      onComplete(score, finalAnswers);
     }
   };
 
@@ -176,6 +195,10 @@ export function QuizScreen({ lesson, onComplete, onExit }: QuizScreenProps) {
                     <div className="flex-shrink-0 size-10 rounded-full bg-green-500 flex items-center justify-center">
                       <Check className="size-6 text-white" />
                     </div>
+                  ) : quizFailed ? (
+                    <div className="flex-shrink-0 size-10 rounded-full bg-gray-700 flex items-center justify-center">
+                      <X className="size-6 text-white" />
+                    </div>
                   ) : (
                     <div className="flex-shrink-0 size-10 rounded-full bg-red-500 flex items-center justify-center">
                       <AlertCircle className="size-6 text-white" />
@@ -183,12 +206,18 @@ export function QuizScreen({ lesson, onComplete, onExit }: QuizScreenProps) {
                   )}
                   <div>
                     <h3 className={`font-bold mb-2 ${
-                      isCorrect ? 'text-green-800 dark:text-green-400' : 'text-red-800 dark:text-red-400'
+                      isCorrect
+                        ? 'text-green-800 dark:text-green-400'
+                        : quizFailed
+                        ? 'text-gray-800 dark:text-gray-300'
+                        : 'text-red-800 dark:text-red-400'
                     }`}>
-                      {isCorrect ? 'Excellent!' : 'Not quite right'}
+                      {isCorrect ? 'Excellent!' : quizFailed ? 'No hearts left' : 'Not quite right'}
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300">
-                      {currentQuestion.explanation}
+                      {quizFailed
+                        ? 'You have no hearts remaining. This lesson ends here, and no progress or unlocks will be awarded.'
+                        : currentQuestion.explanation}
                     </p>
                   </div>
                 </div>
@@ -198,14 +227,22 @@ export function QuizScreen({ lesson, onComplete, onExit }: QuizScreenProps) {
 
           {/* Action Button */}
           <div className="flex justify-center">
-            {!showFeedback ? (
+            {quizFailed ? (
+              <Button 
+                onClick={onExit}
+                size="lg"
+                className="w-full max-w-xs bg-gray-800 hover:bg-gray-900 text-white font-bold"
+              >
+                Back to Home
+              </Button>
+            ) : !showFeedback ? (
               <Button 
                 onClick={handleCheck}
                 disabled={selectedAnswer === null}
                 size="lg"
                 className="w-full max-w-xs bg-blue-500 hover:bg-blue-600 text-white font-bold"
               >
-                Check Answer
+                {isLastQuestion ? 'Submit Answer' : 'Check Answer'}
               </Button>
             ) : (
               <Button 
@@ -217,7 +254,7 @@ export function QuizScreen({ lesson, onComplete, onExit }: QuizScreenProps) {
                     : 'bg-red-500 hover:bg-red-600'
                 } text-white`}
               >
-                Continue
+                {isLastQuestion ? 'Finish Quiz' : 'Continue'}
               </Button>
             )}
           </div>
